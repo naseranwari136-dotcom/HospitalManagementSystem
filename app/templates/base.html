@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Hospital Management System</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- Top Navigation -->
+    <nav class="topbar">
+        <h2>Hospital Management System</h2>
+    </nav>
+
+    <div class="layout">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h3>MAIN MENU</h3>
+
+            <a href="/">Dashboard</a>
+            <a href="#">Patients</a>
+            <a href="#">Doctors</a>
+            <a href="#">Departments</a>
+            <a href="#">Appointments</a>
+            <a href="#">Prescriptions</a>
+            <a href="#">Medicines</a>
+            <a href="#">Payments</a>
+            <a href="#">Expenses</a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div>
+
+    <!-- Page JavaScript -->
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

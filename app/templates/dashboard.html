@@ -1,0 +1,169 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Dashboard Header -->
+<h1>Hospital Dashboard</h1>
+<p>Welcome to Hospital Management System</p>
+
+<!-- Statistics Cards -->
+<div class="dashboard-cards">
+
+    <div class="card">
+        <h3>Total Patients</h3>
+        <h2>0</h2>
+    </div>
+
+    <div class="card">
+        <h3>Total Doctors</h3>
+        <h2>0</h2>
+    </div>
+
+    <div class="card">
+        <h3>Total Appointments</h3>
+        <h2>0</h2>
+    </div>
+
+</div>
+
+<!-- Charts Section -->
+<div class="charts-container">
+
+    <!-- Weekly Appointments Chart -->
+    <div class="chart-card">
+        <h2>Weekly Appointments</h2>
+        <canvas id="appointmentsChart"></canvas>
+    </div>
+
+    <!-- Patient Registration Chart -->
+    <div class="chart-card">
+        <h2>Patient Registration</h2>
+        <canvas id="patientsChart"></canvas>
+    </div>
+
+</div>
+
+<!-- Recent Appointments -->
+<div class="appointments-section">
+
+    <h2>Recent Appointments</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Patient Name</th>
+                <th>Doctor Name</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td>No Data</td>
+                <td>No Data</td>
+                <td>--</td>
+                <td>--</td>
+                <td>Pending</td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+
+    // Weekly Appointments Bar Chart
+
+    const appointmentsCanvas = document.getElementById('appointmentsChart');
+
+    new Chart(appointmentsCanvas, {
+        type: 'bar',
+
+        data: {
+            labels: ['Saturday', 'Sunday', 'Monday', 'Tuesday',
+                     'Wednesday', 'Thursday', 'Friday'],
+
+            datasets: [{
+                label: 'Appointments',
+                data: [12, 19, 8, 15, 10, 22, 16],
+                backgroundColor: '#168aad',
+                borderRadius: 6
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+
+    // Patient Registration Line Chart
+
+    const patientsCanvas = document.getElementById('patientsChart');
+
+    new Chart(patientsCanvas, {
+        type: 'line',
+
+        data: {
+            labels: ['Saturday', 'Sunday', 'Monday', 'Tuesday',
+                     'Wednesday', 'Thursday', 'Friday'],
+
+            datasets: [{
+                label: 'New Patients',
+                data: [5, 8, 6, 12, 9, 15, 11],
+                borderColor: '#168aad',
+                backgroundColor: 'rgba(22, 138, 173, 0.15)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 5
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,211 @@
+
+/* General Settings */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #263445;
+}
+
+/* Top Navigation */
+
+.topbar {
+    background: #123b5d;
+    color: white;
+    padding: 22px 30px;
+}
+
+.topbar h2 {
+    font-size: 23px;
+}
+
+/* Main Layout */
+
+.layout {
+    display: flex;
+    min-height: calc(100vh - 67px);
+}
+
+/* Sidebar */
+
+.sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: #12304a;
+    padding: 25px 15px;
+}
+
+.sidebar h3 {
+    color: #91a8ba;
+    font-size: 13px;
+    margin: 5px 10px 20px;
+}
+
+.sidebar a {
+    display: block;
+    color: #dce6ef;
+    text-decoration: none;
+    padding: 13px 15px;
+    margin-bottom: 7px;
+    border-radius: 7px;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background: #168aad;
+    color: white;
+}
+
+/* Main Content */
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 30px;
+}
+
+h1 {
+    margin-bottom: 10px;
+    color: #123b5d;
+}
+
+p {
+    color: #667085;
+    margin-bottom: 25px;
+}
+
+/* Dashboard Cards */
+
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+    border-left: 5px solid #168aad;
+}
+
+.card h3 {
+    font-size: 16px;
+    color: #667085;
+    margin-bottom: 15px;
+}
+
+.card h2 {
+    font-size: 32px;
+    color: #123b5d;
+}
+
+/* Charts Section */
+
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.chart-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+    min-width: 0;
+}
+
+.chart-card h2 {
+    color: #123b5d;
+    font-size: 19px;
+    margin-bottom: 20px;
+}
+
+.chart-card canvas {
+    width: 100% !important;
+    height: 280px !important;
+}
+
+/* Appointments Section */
+
+.appointments-section {
+    background: white;
+    padding: 25px;
+    margin-top: 30px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+    overflow-x: auto;
+}
+
+.appointments-section h2 {
+    color: #123b5d;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+thead {
+    background: #f0f4f8;
+}
+
+th, td {
+    padding: 15px;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+th {
+    color: #344054;
+    font-size: 14px;
+}
+
+td {
+    color: #667085;
+    font-size: 14px;
+}
+
+tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* Responsive Design */
+
+@media (max-width: 900px) {
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+}
