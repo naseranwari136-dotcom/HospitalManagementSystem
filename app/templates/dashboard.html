@@ -3,7 +3,6 @@
 
 {% block content %}
 
-<!-- Dashboard Header -->
 <h1>Hospital Dashboard</h1>
 <p>Welcome to Hospital Management System</p>
 
@@ -12,37 +11,37 @@
 
     <div class="card">
         <h3>Total Patients</h3>
-        <h2>0</h2>
+        <h2>{{ total_patients }}</h2>
     </div>
 
     <div class="card">
         <h3>Total Doctors</h3>
-        <h2>0</h2>
+        <h2>{{ total_doctors }}</h2>
     </div>
 
     <div class="card">
         <h3>Total Appointments</h3>
-        <h2>0</h2>
+        <h2>{{ total_appointments }}</h2>
     </div>
 
 </div>
 
-<!-- Charts Section -->
+
+<!-- Charts -->
 <div class="charts-container">
 
-    <!-- Weekly Appointments Chart -->
     <div class="chart-card">
         <h2>Weekly Appointments</h2>
         <canvas id="appointmentsChart"></canvas>
     </div>
 
-    <!-- Patient Registration Chart -->
     <div class="chart-card">
         <h2>Patient Registration</h2>
         <canvas id="patientsChart"></canvas>
     </div>
 
 </div>
+
 
 <!-- Recent Appointments -->
 <div class="appointments-section">
@@ -61,13 +60,25 @@
         </thead>
 
         <tbody>
+
+            {% for appointment in recent_appointments %}
+
             <tr>
-                <td>No Data</td>
-                <td>No Data</td>
-                <td>--</td>
-                <td>--</td>
-                <td>Pending</td>
+                <td>{{ appointment[0] }}</td>
+                <td>{{ appointment[1] }}</td>
+                <td>{{ appointment[2].strftime('%Y-%m-%d') }}</td>
+                <td>{{ appointment[3] }}</td>
+                <td>{{ appointment[4] }}</td>
             </tr>
+
+            {% else %}
+
+            <tr>
+                <td colspan="5">No Appointments Found</td>
+            </tr>
+
+            {% endfor %}
+
         </tbody>
     </table>
 
@@ -80,89 +91,86 @@
 
 <script>
 
-    // Weekly Appointments Bar Chart
+    // Chart Data from Oracle Database
 
-    const appointmentsCanvas = document.getElementById('appointmentsChart');
+    const chartLabels = {{ chart_labels | tojson }};
 
-    new Chart(appointmentsCanvas, {
-        type: 'bar',
+    const appointmentValues = {{ appointments_chart_values | tojson }};
 
-        data: {
-            labels: ['Saturday', 'Sunday', 'Monday', 'Tuesday',
-                     'Wednesday', 'Thursday', 'Friday'],
+    const patientValues = {{ patients_chart_values | tojson }};
 
-            datasets: [{
-                label: 'Appointments',
-                data: [12, 19, 8, 15, 10, 22, 16],
-                backgroundColor: '#168aad',
-                borderRadius: 6
-            }]
-        },
 
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
+    // Weekly Appointments Chart
 
-            plugins: {
-                legend: {
-                    display: true
-                }
+    new Chart(
+        document.getElementById('appointmentsChart'),
+        {
+            type: 'bar',
+
+            data: {
+                labels: chartLabels,
+
+                datasets: [{
+                    label: 'Appointments',
+                    data: appointmentValues,
+                    backgroundColor: '#168aad',
+                    borderRadius: 6
+                }]
             },
 
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
                     }
                 }
             }
         }
-    });
+    );
 
 
-    // Patient Registration Line Chart
+    // Patient Registration Chart
 
-    const patientsCanvas = document.getElementById('patientsChart');
+    new Chart(
+        document.getElementById('patientsChart'),
+        {
+            type: 'line',
 
-    new Chart(patientsCanvas, {
-        type: 'line',
+            data: {
+                labels: chartLabels,
 
-        data: {
-            labels: ['Saturday', 'Sunday', 'Monday', 'Tuesday',
-                     'Wednesday', 'Thursday', 'Friday'],
-
-            datasets: [{
-                label: 'New Patients',
-                data: [5, 8, 6, 12, 9, 15, 11],
-                borderColor: '#168aad',
-                backgroundColor: 'rgba(22, 138, 173, 0.15)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 5
-            }]
-        },
-
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-
-            plugins: {
-                legend: {
-                    display: true
-                }
+                datasets: [{
+                    label: 'New Patients',
+                    data: patientValues,
+                    borderColor: '#168aad',
+                    backgroundColor: 'rgba(22, 138, 173, 0.15)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5
+                }]
             },
 
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        precision: 0
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
                     }
                 }
             }
         }
-    });
+    );
 
 </script>
 
