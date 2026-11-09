@@ -1,0 +1,157 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Patient Management</h1>
+    <p>Register, search and manage hospital patients.</p>
+</div>
+
+<div class="patient-form">
+    <h2>Patient Registration</h2>
+
+    {% if message %}
+        <div class="form-message {{ message_type }}">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('patients.patient_list') }}">
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name"
+                       placeholder="Enter patient name"
+                       maxlength="150" required>
+            </div>
+
+            <div class="form-group">
+                <label>Gender</label>
+                <select name="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" name="date_of_birth">
+            </div>
+
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" name="phone"
+                       placeholder="Enter phone number"
+                       maxlength="20">
+            </div>
+
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" name="address"
+                       placeholder="Enter address"
+                       maxlength="250">
+            </div>
+
+            <div class="form-group">
+                <label>Blood Group</label>
+                <select name="blood_group">
+                    <option value="">Select Blood Group</option>
+                    {% for group in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] %}
+                        <option value="{{ group }}">{{ group }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+        <button type="submit">Register Patient</button>
+    </form>
+</div>
+
+<div class="patient-stats">
+    <div class="patient-stat-card">
+        <span>Patients Displayed</span>
+        <h2>{{ patients|length }}</h2>
+    </div>
+</div>
+
+<div class="patient-list">
+    <h2>Registered Patients</h2>
+
+    <form method="GET"
+          action="{{ url_for('patients.patient_list') }}"
+          class="patient-search">
+
+        <input type="text" name="search"
+               value="{{ search }}"
+               placeholder="Search by name, ID or phone...">
+
+        <button type="submit">Search</button>
+
+        <a href="{{ url_for('patients.patient_list') }}"
+           class="clear-search">Clear</a>
+    </form>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Gender</th>
+                    <th>Age</th>
+                    <th>Date of Birth</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Blood Group</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td>{{ patient.patient_id }}</td>
+                    <td>{{ patient.full_name }}</td>
+                    <td>{{ patient.gender }}</td>
+                    <td>
+                        {{ patient.age ~ ' years' if patient.age is not none else 'Not provided' }}
+                    </td>
+                    <td>
+                        {{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '-' }}
+                    </td>
+                    <td>{{ patient.phone or '-' }}</td>
+                    <td>{{ patient.address or '-' }}</td>
+                    <td>{{ patient.blood_group or '-' }}</td>
+                    <td>
+                        <a class="edit-button"
+                           href="{{ url_for('patients.edit_patient', patient_id=patient.patient_id) }}">
+                            Edit
+                        </a>
+
+                        <form method="POST"
+                              action="{{ url_for('patients.delete_patient', patient_id=patient.patient_id) }}"
+                              style="display: inline;"
+                              onsubmit="return confirm('Are you sure you want to delete this patient?');">
+                            <button type="submit" class="delete-button">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9">No matching patients found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,88 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Edit Patient</h1>
+    <p>Update patient information.</p>
+</div>
+
+<div class="patient-form">
+
+    <h2>Patient ID: {{ patient.patient_id }}</h2>
+
+    {% if message %}
+        <div class="form-message {{ message_type }}">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    <form method="POST"
+          action="{{ url_for('patients.edit_patient', patient_id=patient.patient_id) }}">
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name"
+                       value="{{ patient.full_name }}"
+                       maxlength="150" required>
+            </div>
+
+            <div class="form-group">
+                <label>Gender</label>
+                <select name="gender" required>
+                    <option value="Male" {% if patient.gender == 'Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if patient.gender == 'Female' %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if patient.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" name="date_of_birth"
+                       value="{{ patient.date_of_birth.strftime('%Y-%m-%d') if patient.date_of_birth else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" name="phone"
+                       value="{{ patient.phone or '' }}"
+                       maxlength="20">
+            </div>
+
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" name="address"
+                       value="{{ patient.address or '' }}"
+                       maxlength="250">
+            </div>
+
+            <div class="form-group">
+                <label>Blood Group</label>
+                <select name="blood_group">
+                    <option value="">Select Blood Group</option>
+                    {% for group in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] %}
+                        <option value="{{ group }}"
+                            {% if patient.blood_group == group %}selected{% endif %}>
+                            {{ group }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+        <button type="submit">Save Changes</button>
+
+        <a href="{{ url_for('patients.patient_list') }}"
+           class="clear-search">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

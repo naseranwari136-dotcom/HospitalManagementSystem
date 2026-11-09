@@ -1,0 +1,143 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Doctor Management</h1>
+    <p>Register, search and manage hospital doctors.</p>
+</div>
+
+<div class="patient-form">
+    <h2>Doctor Registration</h2>
+
+    {% if message %}
+        <div class="form-message {{ message_type }}">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('doctors.doctors_list') }}">
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="full_name"
+                       placeholder="Enter doctor name"
+                       maxlength="150" required>
+            </div>
+
+            <div class="form-group">
+                <label>Specialization</label>
+                <input type="text" name="specialization"
+                       placeholder="Enter specialization">
+            </div>
+
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" name="phone"
+                       placeholder="Enter phone number"
+                       maxlength="20">
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email"
+                       placeholder="Enter email address">
+            </div>
+
+            <div class="form-group">
+                <label>Department</label>
+                <select name="department_id" required>
+                    <option value="">Select Department</option>
+                    {% for department in departments %}
+                        <option value="{{ department[0] }}">
+                            {{ department[1] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+        <button type="submit">Register Doctor</button>
+    </form>
+</div>
+
+<div class="patient-stats">
+    <div class="patient-stat-card">
+        <span>Doctors Displayed</span>
+        <h2>{{ doctors|length }}</h2>
+    </div>
+</div>
+
+<div class="patient-list">
+    <h2>Registered Doctors</h2>
+
+    <form method="GET"
+          action="{{ url_for('doctors.doctors_list') }}"
+          class="patient-search">
+
+        <input type="text" name="search"
+               value="{{ search }}"
+               placeholder="Search by name, ID, phone or specialization...">
+
+        <button type="submit">Search</button>
+
+        <a href="{{ url_for('doctors.doctors_list') }}"
+           class="clear-search">Clear</a>
+    </form>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Specialization</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for doctor in doctors %}
+                <tr>
+                    <td>{{ doctor[0] }}</td>
+                    <td>{{ doctor[1] }}</td>
+                    <td>{{ doctor[2] or '-' }}</td>
+                    <td>{{ doctor[3] or '-' }}</td>
+                    <td>{{ doctor[4] or '-' }}</td>
+                    <td>{{ doctor[5] }}</td>
+
+                    <td>
+                        <a class="edit-button"
+                           href="{{ url_for('doctors.edit_doctor', doctor_id=doctor[0]) }}">
+                            Edit
+                        </a>
+
+                        <form method="POST"
+                              action="{{ url_for('doctors.delete_doctor', doctor_id=doctor[0]) }}"
+                              style="display: inline;"
+                              onsubmit="return confirm('Are you sure you want to delete this doctor?');">
+
+                            <button type="submit" class="delete-button">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="7">No matching doctors found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
