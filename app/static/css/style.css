@@ -816,3 +816,47 @@ tbody tr:hover {
         flex-wrap: wrap;
     }
 }
+
+
+/* =========================================
+   APPOINTMENTS FORM FIX
+========================================= */
+
+.patient-form select,
+.patient-form select option {
+    background-color: #ffffff;
+    color: #263445;
+}
+
+.patient-form select {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    appearance: auto;
+    opacity: 1;
+    visibility: visible;
+}
+
+.patient-form select:focus {
+    border-color: #168aad;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(22, 138, 173, 0.12);
+}
+
+.patient-form select option {
+    padding: 10px;
+}
+
+.patient-form .form-group {
+    min-width: 0;
+}
+
+.patient-form .form-grid {
+    width: 100%;
+}
