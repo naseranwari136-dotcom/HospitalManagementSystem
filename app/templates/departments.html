@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Departments Management</h1>
+    <p>Register and manage hospital departments.</p>
+</div>
+
+{% if message %}
+<div class="alert alert-{{ message_type }}" role="alert">
+    {{ message }}
+</div>
+{% endif %}
+
+<div class="patient-form">
+    <h2>Add New Department</h2>
+
+    <form method="POST" action="{{ url_for('departments.departments_list') }}">
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label for="name">Department Name *</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="e.g. Cardiology"
+                    maxlength="100"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="location">Department Location</label>
+                <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    placeholder="e.g. First Floor"
+                    maxlength="150"
+                >
+            </div>
+
+        </div>
+
+        <button type="submit" class="save-button">
+            Register Department
+        </button>
+    </form>
+</div>
+
+
+<div class="patient-stats">
+
+    <div class="patient-stat-card">
+        <h3>Total Departments</h3>
+        <p>{{ total_departments }}</p>
+    </div>
+
+    <div class="patient-stat-card">
+        <h3>Total Doctors</h3>
+        <p>{{ total_doctors }}</p>
+    </div>
+
+</div>
+
+
+<div class="patient-list">
+
+    <div class="page-header">
+        <h2>Department List</h2>
+    </div>
+
+    <form method="GET"
+          action="{{ url_for('departments.departments_list') }}"
+          class="patient-search">
+
+        <input
+            type="text"
+            name="search"
+            placeholder="Search by department name or ID..."
+            value="{{ search }}"
+        >
+
+        <button type="submit">Search</button>
+
+        <a href="{{ url_for('departments.departments_list') }}">
+            Clear
+        </a>
+    </form>
+
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Department Name</th>
+                    <th>Location</th>
+                    <th>Doctors</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for department in departments %}
+                <tr>
+                    <td>{{ department[0] }}</td>
+                    <td>{{ department[1] }}</td>
+                    <td>{{ department[2] or 'Not specified' }}</td>
+                    <td>{{ department[3] }}</td>
+
+                    <td>
+                        <a
+                            href="{{ url_for('departments.edit_department', department_id=department[0]) }}"
+                            class="edit-button"
+                        >
+                            Edit
+                        </a>
+
+                        {% if department[3] == 0 %}
+                        <form
+                            method="POST"
+                            action="{{ url_for('departments.delete_department', department_id=department[0]) }}"
+                            style="display:inline;"
+                            onsubmit="return confirm('Are you sure you want to delete this department?');"
+                        >
+                            <button type="submit" class="delete-button">
+                                Delete
+                            </button>
+                        </form>
+                        {% else %}
+                        <span title="Doctors are assigned to this department">
+                            In Use
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="5">No departments found.</td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

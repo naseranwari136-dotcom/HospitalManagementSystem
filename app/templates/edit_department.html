@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Edit Department</h1>
+    <p>Update department information.</p>
+</div>
+
+{% if message %}
+<div class="alert alert-{{ message_type }}" role="alert">
+    {{ message }}
+</div>
+{% endif %}
+
+{% if department %}
+
+<div class="patient-form">
+
+    <p><strong>Department ID:</strong> {{ department.department_id }}</p>
+
+    <form
+        method="POST"
+        action="{{ url_for('departments.edit_department', department_id=department.department_id) }}"
+    >
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label for="name">Department Name *</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value="{{ department.name }}"
+                    maxlength="100"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="location">Department Location</label>
+                <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    value="{{ department.location }}"
+                    maxlength="150"
+                >
+            </div>
+
+        </div>
+
+        <button type="submit" class="save-button">
+            Save Changes
+        </button>
+
+        <a
+            href="{{ url_for('departments.departments_list') }}"
+            class="edit-button"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
