@@ -19,14 +19,20 @@
     <h2>Appointment Information</h2>
 
     <form method="POST">
+
         <div class="form-grid">
 
             <div class="form-group">
                 <label>Patient</label>
+
                 <select name="patient_id" required>
+                    <option value="">Select Patient</option>
+
                     {% for patient in patients %}
                         <option value="{{ patient[0] }}"
-                            {% if patient[0] == appointment[1] %}selected{% endif %}>
+                            {% if patient[0]|string == form_values.patient_id|string %}
+                                selected
+                            {% endif %}>
                             {{ patient[1] }} (ID: {{ patient[0] }})
                         </option>
                     {% endfor %}
@@ -35,10 +41,15 @@
 
             <div class="form-group">
                 <label>Doctor</label>
+
                 <select name="doctor_id" required>
+                    <option value="">Select Doctor</option>
+
                     {% for doctor in doctors %}
                         <option value="{{ doctor[0] }}"
-                            {% if doctor[0] == appointment[2] %}selected{% endif %}>
+                            {% if doctor[0]|string == form_values.doctor_id|string %}
+                                selected
+                            {% endif %}>
                             {{ doctor[1] }} (ID: {{ doctor[0] }})
                         </option>
                     {% endfor %}
@@ -47,26 +58,35 @@
 
             <div class="form-group">
                 <label>Appointment Date</label>
-                <input type="date"
-                       name="appointment_date"
-                       value="{{ appointment[3].strftime('%Y-%m-%d') }}"
-                       required>
+
+                <input
+                    type="date"
+                    name="appointment_date"
+                    value="{{ form_values.appointment_date }}"
+                    required
+                >
             </div>
 
             <div class="form-group">
                 <label>Appointment Time</label>
-                <input type="time"
-                       name="appointment_time"
-                       value="{{ appointment[4] }}"
-                       required>
+
+                <input
+                    type="time"
+                    name="appointment_time"
+                    value="{{ form_values.appointment_time }}"
+                    required
+                >
             </div>
 
             <div class="form-group">
                 <label>Status</label>
+
                 <select name="status" required>
                     {% for status in statuses %}
                         <option value="{{ status }}"
-                            {% if status == appointment[5] %}selected{% endif %}>
+                            {% if status == form_values.status %}
+                                selected
+                            {% endif %}>
                             {{ status }}
                         </option>
                     {% endfor %}
@@ -75,10 +95,15 @@
 
         </div>
 
-        <button type="submit">Update Appointment</button>
+        <button type="submit">
+            Update Appointment
+        </button>
 
         <a href="{{ url_for('appointments.appointment_list') }}"
-           class="clear-search">Cancel</a>
+           class="clear-search">
+            Cancel
+        </a>
+
     </form>
 </div>
 {% endif %}

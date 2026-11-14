@@ -1,6 +1,8 @@
 
 from datetime import datetime
 
+import oracledb
+
 from flask import Blueprint, render_template, request, redirect, url_for
 from database.connection import get_connection
 
@@ -52,7 +54,6 @@ def get_appointment_time(value):
 
 
 def normalize_time(value):
-    """Convert stored times to a consistent HH:MM format."""
     if not value:
         return ""
 
@@ -75,14 +76,8 @@ def check_appointment_conflict(
     appointment_time,
     exclude_appointment_id=None
 ):
-    """
-    Check whether a scheduled appointment already occupies
-    the selected patient's or doctor's time slot.
-    """
-
     sql = """
         SELECT
-            APPOINTMENT_ID,
             PATIENT_ID,
             DOCTOR_ID,
             APPOINTMENT_TIME
@@ -100,15 +95,13 @@ def check_appointment_conflict(
         params["exclude_id"] = exclude_appointment_id
 
     cursor.execute(sql, params)
-    existing_appointments = cursor.fetchall()
 
     selected_time = normalize_time(appointment_time)
 
-    for existing in existing_appointments:
-        existing_id = existing[0]
-        existing_patient_id = existing[1]
-        existing_doctor_id = existing[2]
-        existing_time = normalize_time(existing[3])
+    for row in cursor.fetchall():
+        existing_patient_id = row[0]
+        existing_doctor_id = row[1]
+        existing_time = normalize_time(row[2])
 
         if existing_time != selected_time:
             continue
@@ -126,6 +119,24 @@ def check_appointment_conflict(
             )
 
     return None
+
+
+def get_database_conflict_message(error):
+    error_text = str(error)
+
+    if "UX_APPT_DOCTOR_SLOT" in error_text:
+        return (
+            "This doctor already has a scheduled "
+            "appointment at this date and time."
+        )
+
+    if "UX_APPT_PATIENT_SLOT" in error_text:
+        return (
+            "This patient already has a scheduled "
+            "appointment at this date and time."
+        )
+
+    return "Database rejected this appointment. Please check the information."
 
 
 @appointments_bp.route("/", methods=["GET", "POST"])
@@ -146,7 +157,9 @@ def appointment_list():
             doctor_id = request.form.get("doctor_id", "").strip()
             date_value = request.form.get("appointment_date", "").strip()
             time_value = request.form.get("appointment_time", "").strip()
-            appointment_status = request.form.get("status", "Scheduled")
+            appointment_status = request.form.get(
+                "status", "Scheduled"
+            ).strip()
 
             if not all([
                 patient_id,
@@ -211,37 +224,43 @@ def appointment_list():
                             message_type = "danger"
 
                         else:
-                            cursor.execute("""
-                                INSERT INTO APPOINTMENTS (
-                                    PATIENT_ID,
-                                    DOCTOR_ID,
-                                    APPOINTMENT_DATE,
-                                    APPOINTMENT_TIME,
-                                    STATUS
-                                )
-                                VALUES (
-                                    :patient_id,
-                                    :doctor_id,
-                                    :appointment_date,
-                                    :appointment_time,
-                                    :status
-                                )
-                            """, {
-                                "patient_id": patient_id,
-                                "doctor_id": doctor_id,
-                                "appointment_date": appointment_date,
-                                "appointment_time": appointment_time,
-                                "status": appointment_status
-                            })
+                            try:
+                                cursor.execute("""
+                                    INSERT INTO APPOINTMENTS (
+                                        PATIENT_ID,
+                                        DOCTOR_ID,
+                                        APPOINTMENT_DATE,
+                                        APPOINTMENT_TIME,
+                                        STATUS
+                                    )
+                                    VALUES (
+                                        :patient_id,
+                                        :doctor_id,
+                                        :appointment_date,
+                                        :appointment_time,
+                                        :status
+                                    )
+                                """, {
+                                    "patient_id": patient_id,
+                                    "doctor_id": doctor_id,
+                                    "appointment_date": appointment_date,
+                                    "appointment_time": appointment_time,
+                                    "status": appointment_status
+                                })
 
-                            conn.commit()
+                                conn.commit()
 
-                            return redirect(
-                                url_for(
-                                    "appointments.appointment_list",
-                                    status="created"
+                                return redirect(
+                                    url_for(
+                                        "appointments.appointment_list",
+                                        status="created"
+                                    )
                                 )
-                            )
+
+                            except oracledb.IntegrityError as error:
+                                conn.rollback()
+                                message = get_database_conflict_message(error)
+                                message_type = "danger"
 
                 except ValueError:
                     message = "Invalid ID, date or time format."
@@ -309,11 +328,11 @@ def appointment_list():
             message_type=message_type
         )
 
-    except Exception as e:
+    except Exception as error:
         if conn:
             conn.rollback()
 
-        print("Appointments Error:", repr(e))
+        print("Appointments Error:", repr(error))
 
         return render_template(
             "appointments.html",
@@ -340,11 +359,15 @@ def appointment_list():
 def edit_appointment(appointment_id):
     conn = None
     cursor = None
-    appointment = None
+
     patients = []
     doctors = []
+    appointment = None
+
     message = None
     message_type = "danger"
+
+    form_values = {}
 
     try:
         conn = get_connection()
@@ -352,12 +375,55 @@ def edit_appointment(appointment_id):
 
         patients, doctors = get_form_data(cursor)
 
+        cursor.execute("""
+            SELECT
+                APPOINTMENT_ID,
+                PATIENT_ID,
+                DOCTOR_ID,
+                APPOINTMENT_DATE,
+                APPOINTMENT_TIME,
+                STATUS
+            FROM APPOINTMENTS
+            WHERE APPOINTMENT_ID = :appointment_id
+        """, {"appointment_id": appointment_id})
+
+        appointment = cursor.fetchone()
+
+        if appointment is None:
+            return redirect(
+                url_for(
+                    "appointments.appointment_list",
+                    status="error"
+                )
+            )
+
+        form_values = {
+            "patient_id": str(appointment[1]),
+            "doctor_id": str(appointment[2]),
+            "appointment_date": appointment[3].strftime("%Y-%m-%d"),
+            "appointment_time": format_time_for_input(appointment[4]),
+            "status": appointment[5]
+        }
+
         if request.method == "POST":
-            patient_id = request.form.get("patient_id", "").strip()
-            doctor_id = request.form.get("doctor_id", "").strip()
-            date_value = request.form.get("appointment_date", "").strip()
-            time_value = request.form.get("appointment_time", "").strip()
-            appointment_status = request.form.get("status", "")
+
+            form_values = {
+                "patient_id": request.form.get("patient_id", "").strip(),
+                "doctor_id": request.form.get("doctor_id", "").strip(),
+                "appointment_date": request.form.get(
+                    "appointment_date", ""
+                ).strip(),
+                "appointment_time": request.form.get(
+                    "appointment_time", ""
+                ).strip(),
+                "status": request.form.get("status", "").strip()
+            }
+
+            patient_id = form_values["patient_id"]
+            doctor_id = form_values["doctor_id"]
+            date_value = form_values["appointment_date"]
+            time_value = form_values["appointment_time"]
+            appointment_status = form_values["status"]
 
             if not all([
                 patient_id,
@@ -417,65 +483,49 @@ def edit_appointment(appointment_id):
                             message = conflict
 
                         else:
-                            cursor.execute("""
-                                UPDATE APPOINTMENTS
-                                SET PATIENT_ID = :patient_id,
-                                    DOCTOR_ID = :doctor_id,
-                                    APPOINTMENT_DATE = :appointment_date,
-                                    APPOINTMENT_TIME = :appointment_time,
-                                    STATUS = :status
-                                WHERE APPOINTMENT_ID = :appointment_id
-                            """, {
-                                "patient_id": patient_id,
-                                "doctor_id": doctor_id,
-                                "appointment_date": appointment_date,
-                                "appointment_time": appointment_time,
-                                "status": appointment_status,
-                                "appointment_id": appointment_id
-                            })
+                            try:
+                                cursor.execute("""
+                                    UPDATE APPOINTMENTS
+                                    SET PATIENT_ID = :patient_id,
+                                        DOCTOR_ID = :doctor_id,
+                                        APPOINTMENT_DATE = :appointment_date,
+                                        APPOINTMENT_TIME = :appointment_time,
+                                        STATUS = :status
+                                    WHERE APPOINTMENT_ID = :appointment_id
+                                """, {
+                                    "patient_id": patient_id,
+                                    "doctor_id": doctor_id,
+                                    "appointment_date": appointment_date,
+                                    "appointment_time": appointment_time,
+                                    "status": appointment_status,
+                                    "appointment_id": appointment_id
+                                })
 
-                            if cursor.rowcount == 0:
-                                message = "Appointment not found."
-                            else:
-                                conn.commit()
+                                if cursor.rowcount == 0:
+                                    message = "Appointment not found."
 
-                                return redirect(
-                                    url_for(
-                                        "appointments.appointment_list",
-                                        status="updated"
+                                else:
+                                    conn.commit()
+
+                                    return redirect(
+                                        url_for(
+                                            "appointments.appointment_list",
+                                            status="updated"
+                                        )
                                     )
-                                )
+
+                            except oracledb.IntegrityError as error:
+                                conn.rollback()
+                                message = get_database_conflict_message(error)
 
                 except ValueError:
                     message = "Invalid date, time or ID format."
 
-        cursor.execute("""
-            SELECT
-                APPOINTMENT_ID,
-                PATIENT_ID,
-                DOCTOR_ID,
-                APPOINTMENT_DATE,
-                APPOINTMENT_TIME,
-                STATUS
-            FROM APPOINTMENTS
-            WHERE APPOINTMENT_ID = :appointment_id
-        """, {"appointment_id": appointment_id})
-
-        appointment = cursor.fetchone()
-
-        if appointment is None:
-            return redirect(
-                url_for(
-                    "appointments.appointment_list",
-                    status="error"
-                )
-            )
-
-    except Exception as e:
+    except Exception as error:
         if conn:
             conn.rollback()
 
-        print("Edit Appointment Error:", repr(e))
+        print("Edit Appointment Error:", repr(error))
         message = "Unable to update appointment information."
 
     finally:
@@ -484,13 +534,10 @@ def edit_appointment(appointment_id):
         if conn:
             conn.close()
 
-    if appointment:
-        appointment = list(appointment)
-        appointment[4] = format_time_for_input(appointment[4])
-
     return render_template(
         "edit_appointment.html",
         appointment=appointment,
+        form_values=form_values,
         patients=patients,
         doctors=doctors,
         statuses=ALLOWED_STATUSES,
@@ -533,11 +580,11 @@ def delete_appointment(appointment_id):
             )
         )
 
-    except Exception as e:
+    except Exception as error:
         if conn:
             conn.rollback()
 
-        print("Delete Appointment Error:", repr(e))
+        print("Delete Appointment Error:", repr(error))
 
         return redirect(
             url_for(
